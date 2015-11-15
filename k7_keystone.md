@@ -36,7 +36,7 @@
 
     3) 创建admin角色
 
-    root@king:~# `openstack role create admin`
+    root@king:~# openstack role create admin
     +-------+----------------------------------+
     | Field | Value                            |
     +-------+----------------------------------+
