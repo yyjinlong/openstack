@@ -62,8 +62,7 @@
         [database]
         connection = mysql://keystone:5564155@localhost/keystone
 
-        补充：
-        记得一定注释掉：
+        注,记得一定注释掉：
         connection=sqlite:////var/lib/keystone/keystone.db
 
         [memcache]
@@ -79,7 +78,7 @@
 
 ### 填充keystone
 
-    注：最好切到root执行,否则会同步不成干
+    注：最好切到root执行,否则会同步不成功
     # sh -c "keystone-manage db_sync" keystone
 
 
