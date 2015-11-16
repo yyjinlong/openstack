@@ -105,7 +105,7 @@
     root@king:~#
 
 
-    3) 创建demo角色
+    3) 创建user角色
 
     root@king:~# openstack role create user
     +-------+----------------------------------+
@@ -117,7 +117,7 @@
     root@king:~#
 
 
-    4) 添加 demo 角色到 demo 租户和用户
+    4) 添加 user 角色到 demo 租户和用户
 
     root@king:~# openstack role add --project demo --user demo user
     +-------+----------------------------------+
