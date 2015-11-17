@@ -52,9 +52,9 @@
 ###四、Identity 版本 3 API添加支持域
 
     root@king:~# openstack --os-auth-url http://localhost:35357 \
-    --os-project-domain-id default --os-user-domain-id default \
-    >  --os-project-name admin --os-username admin --os-auth-type password \
-    >  token issue
+    > --os-project-domain-id default --os-user-domain-id default \
+    > --os-project-name admin --os-username admin --os-auth-type password \
+    > token issue
     Password:
     +------------+----------------------------------+
     | Field      | Value                            |
@@ -73,7 +73,7 @@
 
     root@king:~# openstack --os-auth-url http://localhost:35357 \
     > --os-project-name admin --os-username admin --os-auth-type password \
-    > > project list
+    > project list
     Password:
     +----------------------------------+---------+
     | ID                               | Name    |
@@ -89,8 +89,8 @@
 
     root@king:~#
     root@king:~# openstack --os-auth-url http://localhost:35357 \
-    > > --os-project-name admin --os-username admin --os-auth-type password \
-    > > user list
+    > --os-project-name admin --os-username admin --os-auth-type password \
+    > user list
     Password:
     +----------------------------------+-------+
     | ID                               | Name  |
@@ -119,7 +119,7 @@
 ###八、作为demo用户，请求token 认证从3版本的API
 
     root@king:~# openstack --os-auth-url http://localhost:5000 \
-    --os-project-domain-id default --os-user-domain-id default \
+    > --os-project-domain-id default --os-user-domain-id default \
     > --os-project-name demo --os-username demo --os-auth-type password \
     > token issue
     Password:
