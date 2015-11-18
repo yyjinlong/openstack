@@ -1,4 +1,4 @@
-## glance安装配置]控制节点]
+## glance安装配置[控制节点]
 
 
 ## 配置准备
@@ -224,8 +224,21 @@
     # su -s /bin/sh -c "glance-manage db_sync" glance
 
 
-## 完成安装
+## 四、完成安装
 
+    1) 重启镜像服务
 
+        # service glance-registry restart
+        # service glance-api restart
 
+    2） 如果存在SQLite 数据库则删除
+        
+        # rm -f /var/lib/glance/glance.sqlite
+        
+## 遇到问题
 
+    ERROR: openstack No tenant with a name or ID of 'service' exists.
+    原因没有创建service 租户
+    
+    Solution: 创建Service租户即可
+    # openstack project create --description "Service Project" service
