@@ -82,7 +82,7 @@
     3) 创建glance服务实例
 
     root@king:~# openstack service create --name glance \
-    > --description "OpenStack Image Server" image
+    --description "OpenStack Image Server" image
     +-------------+----------------------------------+
     | Field       | Value                            |
     +-------------+----------------------------------+
@@ -98,11 +98,11 @@
 ### 四、创建镜像服务 API endpoint
 
     root@king:~# openstack endpoint create \
-    > --publicurl http://localhost:9292 \
-    > --internalurl http://localhost:9292 \
-    > --adminurl http://localhost:9292 \
-    > --region RegionOne \
-    > image
+    --publicurl http://localhost:9292 \
+    --internalurl http://localhost:9292 \
+    --adminurl http://localhost:9292 \
+    --region RegionOne \
+    image
     +--------------+----------------------------------+
     | Field        | Value                            |
     +--------------+----------------------------------+
@@ -232,13 +232,13 @@
         # service glance-api restart
 
     2） 如果存在SQLite 数据库则删除
-        
+
         # rm -f /var/lib/glance/glance.sqlite
-        
+
 ## 遇到问题
 
     ERROR: openstack No tenant with a name or ID of 'service' exists.
     原因没有创建service 租户
-    
+
     Solution: 创建Service租户即可
     # openstack project create --description "Service Project" service

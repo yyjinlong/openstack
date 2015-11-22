@@ -22,7 +22,7 @@
 ####1）创建Identity实例服务
 
         root@king:~# openstack service create \
-        >   --name keystone --description "OpenStack Identity" identity
+        --name keystone --description "OpenStack Identity" identity
         +-------------+----------------------------------+
         | Field       | Value                            |
         +-------------+----------------------------------+
@@ -38,11 +38,11 @@
 ####2）创建实例服务
 
         root@king:~# openstack endpoint create \
-        >  --publicurl http://localhost:5000/v2.0 \
-        >  --internalurl http://localhost:5000/v2.0 \
-        >  --adminurl http://localhost:35357/v2.0 \
-        >  --region RegionOne \
-        >  identity
+        --publicurl http://localhost:5000/v2.0 \
+        --internalurl http://localhost:5000/v2.0 \
+        --adminurl http://localhost:35357/v2.0 \
+        --region RegionOne \
+        identity
         +--------------+----------------------------------+
         | Field        | Value                            |
         +--------------+----------------------------------+

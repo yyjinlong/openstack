@@ -35,8 +35,8 @@
 ###三、作为管理员，请求身份验证令牌API版本2
 
     root@king:~# openstack --os-auth-url http://localhost:35357 \
-    > --os-project-name admin --os-username admin --os-auth-type password \
-    > token issue
+    --os-project-name admin --os-username admin --os-auth-type password \
+    token issue
     Password:
     +------------+----------------------------------+
     | Field      | Value                            |
@@ -52,9 +52,9 @@
 ###四、Identity 版本 3 API添加支持域
 
     root@king:~# openstack --os-auth-url http://localhost:35357 \
-    > --os-project-domain-id default --os-user-domain-id default \
-    > --os-project-name admin --os-username admin --os-auth-type password \
-    > token issue
+    --os-project-domain-id default --os-user-domain-id default \
+    --os-project-name admin --os-username admin --os-auth-type password \
+    token issue
     Password:
     +------------+----------------------------------+
     | Field      | Value                            |
@@ -72,8 +72,8 @@
 
 
     root@king:~# openstack --os-auth-url http://localhost:35357 \
-    > --os-project-name admin --os-username admin --os-auth-type password \
-    > project list
+    --os-project-name admin --os-username admin --os-auth-type password \
+    project list
     Password:
     +----------------------------------+---------+
     | ID                               | Name    |
@@ -89,8 +89,8 @@
 
     root@king:~#
     root@king:~# openstack --os-auth-url http://localhost:35357 \
-    > --os-project-name admin --os-username admin --os-auth-type password \
-    > user list
+    --os-project-name admin --os-username admin --os-auth-type password \
+    user list
     Password:
     +----------------------------------+-------+
     | ID                               | Name  |
@@ -104,8 +104,8 @@
 ###七、作为 admin 用户, 列出角色验证keystone服务
 
     root@king:~# openstack --os-auth-url http://localhost:35357 \
-    > --os-project-name admin --os-username admin --os-auth-type password \
-    > role list
+    --os-project-name admin --os-username admin --os-auth-type password \
+    role list
     Password:
     +----------------------------------+-------+
     | ID                               | Name  |
@@ -119,9 +119,9 @@
 ###八、作为demo用户，请求token 认证从3版本的API
 
     root@king:~# openstack --os-auth-url http://localhost:5000 \
-    > --os-project-domain-id default --os-user-domain-id default \
-    > --os-project-name demo --os-username demo --os-auth-type password \
-    > token issue
+    --os-project-domain-id default --os-user-domain-id default \
+    --os-project-name demo --os-username demo --os-auth-type password \
+    token issue
     Password:
     +------------+----------------------------------+
     | Field      | Value                            |
@@ -138,9 +138,9 @@
 ###九、作为 demo 用户, 尝试列出用户不能执行 admin-only CLI 命令
 
     root@king:~# openstack --os-auth-url http://localhost:5000 \
-    > --os-project-domain-id default --os-user-domain-id default \
-    > --os-project-name demo --os-username demo --os-auth-type password \
-    > user list
+    --os-project-domain-id default --os-user-domain-id default \
+    --os-project-name demo --os-username demo --os-auth-type password \
+    user list
     Password:
     ERROR: openstack You are not authorized to perform the requested action: admin_required (HTTP 403) (Request-ID: req-f7d2441e-d029-4ea7-88e9-ae7797cca764)
     root@king:~#
