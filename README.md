@@ -186,9 +186,8 @@
 
             [DEFAULT]
             admin_token = 570f150cb897e793e58f
-
+            
             verbose = True
-
             debug = True
 
             [database]
@@ -1134,6 +1133,7 @@
     6. 如果存在SQLite 数据库，则删除
        # rm -f /var/lib/nova/nova.sqlite
 
+
 ### 安装配置【计算节点】
 
     1.安装nova
@@ -1184,8 +1184,7 @@
 
         e.在[glance]部分，配置glance服务位置
             [glance]
-            host = controller
-
+            host = localhost
 
         f.在[oslo_concurrency] 部分, 配置 lock 路径:
             [oslo_concurrency]
