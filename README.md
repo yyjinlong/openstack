@@ -371,7 +371,7 @@ ntp同步方式有两种：
 ```
 
 
-六：创建服务实例和 API endpoint
+六、创建服务实例和 API endpoint
 ------------------------------
 
 ```
@@ -1015,8 +1015,8 @@ ntp同步方式有两种：
 5. 安装配置计算控制节点组件【控制节点】
 
     a) 安装nova
-    # apt-get install nova-api nova-cert nova-conductor nova-consoleauth \
-      nova-novncproxy nova-scheduler python-novaclient -y
+        # apt-get install nova-api nova-cert nova-conductor nova-consoleauth \
+          nova-novncproxy nova-scheduler python-novaclient -y
 
     b) 修改配置/etc/nova/nova.conf文件，完成下面内容
         [database]
