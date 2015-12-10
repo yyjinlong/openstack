@@ -37,9 +37,9 @@ vboxnet3：
    网卡1的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet1
    网卡2的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet2
    网卡3的连接方式选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet3
-   网卡4的连接方式选择: `网络地址转换(NAT)`
+   网卡4的连接方式选择: 网络地址转换(NAT)
 
-2) 系统配置: 2cpu 20Gdisk 2Gmemory
+2) 系统配置: 2 cpu 20G disk 2G memory
 
 3) ubuntu server安装过程中
    a) location为hongkong.
