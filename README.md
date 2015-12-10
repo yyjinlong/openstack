@@ -8,7 +8,7 @@
 vboxnet1:
     Network name: VirtualBox  host-only Ethernet Adapter#1
     Purpose: administrator / management network
-    IP block: 10.20.0.0/24
+    IP block: `10.20.0.0/24`
     DHCP: disable
     Linux device: eth0
 
@@ -16,14 +16,14 @@ vboxnet2:
     Network name: VirtualBox  host-only Ethernet Adapter#2
     Purpose: public network
     DHCP: disable
-    IP block: 172.16.0.0/24
+    IP block: `172.16.0.0/24`
     Linux device: eth1
 
 vboxnet3：
     Network name: VirtualBox  host-only Ethernet Adapter#3
     Purpose: Storage/private network
     DHCP: disable
-    IP block: 192.168.4.0/24
+    IP block: `192.168.4.0/24`
     Linux device: eth2
 ```
 
@@ -32,27 +32,26 @@ vboxnet3：
 ----------------------
 
 ```
-注:
-    1) 网卡配置: 高级选项中的控制芯片、混杂模式 均不改.
-       网卡1的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet1
-       网卡2的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet2
-       网卡3的连接方式选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet3
-       网卡4的连接方式选择: 网络地址转换(NAT)
+1) 网卡配置: 高级选项中的控制芯片、混杂模式 均不改.
+   网卡1的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet1
+   网卡2的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet2
+   网卡3的连接方式选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet3
+   网卡4的连接方式选择: `网络地址转换(NAT)`
 
-    2) 系统配置: 2cpu 20Gdisk 2Gmemory
+2) 系统配置: 2cpu 20Gdisk 2Gmemory
 
-    3) ubuntu server安装过程中
-       a) location为hongkong.
-       b) 选择dhcp上网的网卡为eth3.
+3) ubuntu server安装过程中
+   a) location为hongkong.
+   b) 选择dhcp上网的网卡为eth3.
 
-    4) 安装完成后,ifconfig查看只有eth3和lo,所以需要下面的网卡配置.
+4) 安装完成后,ifconfig查看只有eth3和lo,所以需要下面的网卡配置.
 ```
 
 
 网卡配置
 -------
-```
-root@openstack:~# cat /etc/network/interfaces
+```sh
+# cat /etc/network/interfaces
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -86,41 +85,57 @@ network 255.255.255.0
 
 安装openstack包
 --------------
-```
 0) 安装过程中推荐使用root
 
 1) 安装ubuntu-cloud-keyring
+```sh
 apt-get install ubuntu-cloud-keyring
+```
 
 2) 添加kilo源
+```sh
 echo "deb http://ubuntu-cloud.archive.canonical.com/ubuntu" \
   "trusty-updates/kilo main" > /etc/apt/sources.list.d/cloudarchive-kilo.list
+```
 
 3) 更新及源升级
+```sh
 apt-get update && apt-get dist-upgrade
+```
 
 
 ### 一、Ubuntu14.04远程连接（ssh安装）
 
-    ssh是一种安全协议，主要用于给远程登录会话数据进行加密，保证数据传输的安全.
+ssh是一种安全协议，主要用于给远程登录会话数据进行加密，保证数据传输的安全.
 
-    1) 更新源列表
-    apt-get update
+1) 更新源列表
+```sh
+apt-get update
+```
 
-    2) 安装ssh
-    apt-get install openssh-server
+2) 安装ssh
+```sh
+apt-get install openssh-server
+```
 
-    3) 查看ssh服务是否启动
-    ps -e |grep ssh
-    如果有sshd,说明ssh服务已经启动，如果没有启动，则输入
-    service ssh start
-    服务就会启动
+3) 查看ssh服务是否启动
+```sh
+ps -e |grep ssh
+```
 
-    3) 修改配置文件
-    vim /etc/ssh/sshd_config
-    注: ssh默认端口号是22，可以修改（但不建议）。
-    PermitRootLogin without-password 把这一句注释掉，不然有设置密码的root用户就无法登陆。
-    PermitRootLogin yes 增加这一句，允许root用户登陆。
+如果有sshd,说明ssh服务已经启动，如果没有启动，则输入
+```sh
+service ssh start
+```
+服务就会启动
+
+3) 修改配置文件
+```sh
+vim /etc/ssh/sshd_config
+```
+注: ssh默认端口号是22，可以修改（但不建议）。
+PermitRootLogin without-password 把这一句注释掉，不然有设置密码的root用户就无法登陆。
+PermitRootLogin yes 增加这一句，允许root用户登陆。
 
 
 ### 二、NTP安装
