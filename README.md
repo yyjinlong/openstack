@@ -3,7 +3,6 @@
 
 虚拟网络
 -------
-```
 我们需要新建3个虚拟网络vboxnet1, vboxnet2, vboxnet3, 其virtualbox全局配置如下:
 vboxnet1:
     Network name: VirtualBox  host-only Ethernet Adapter#1
@@ -25,7 +24,6 @@ vboxnet3：
     DHCP: disable
     IP block: `192.168.4.0/24`
     Linux device: eth2
-```
 
 
 安装ubuntu server 14.04
