@@ -1,22 +1,123 @@
-## openstack kilo 入门
+## openstack kilo for ubuntu server 14.04 (all in one)
+
+
+虚拟网络
+-------
+```
+我们需要新建3个虚拟网络vboxnet1, vboxnet2, vboxnet3, 其virtualbox全局配置如下:
+vboxnet1:
+    Network name: VirtualBox  host-only Ethernet Adapter#1
+    Purpose: administrator / management network
+    IP block: 10.20.0.0/24
+    DHCP: disable
+    Linux device: eth0
+
+vboxnet2:
+    Network name: VirtualBox  host-only Ethernet Adapter#2
+    Purpose: public network
+    DHCP: disable
+    IP block: 172.16.0.0/24
+    Linux device: eth1
+
+vboxnet3：
+    Network name: VirtualBox  host-only Ethernet Adapter#3
+    Purpose: Storage/private network
+    DHCP: disable
+    IP block: 192.168.4.0/24
+    Linux device: eth2
+```
+
+
+安装ubuntu server 14.04
+----------------------
+
+```
+注:
+    1) 网卡配置: 高级选项中的控制芯片、混杂模式 均不改.
+       网卡1的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet1
+       网卡2的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet2
+       网卡3的连接方式选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet3
+       网卡4的连接方式选择: 网络地址转换(NAT)
+
+    2) 系统配置: 2cpu 20Gdisk 2Gmemory
+
+    3) ubuntu server安装过程中
+       a) location为hongkong.
+       b) 选择dhcp上网的网卡为eth3.
+
+    4) 安装完成后,ifconfig查看只有eth3和lo,所以需要下面的网卡配置.
+```
+
+
+网卡配置
+-------
+```
+root@openstack:~# cat /etc/network/interfaces
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth3
+iface eth3 inet dhcp
+
+# The management network interface
+auto eth0
+iface eth0 inet static
+address 10.20.0.10
+network 255.255.255.0
+
+# The external network interface
+auto eth1
+iface eth1 inet static
+address 172.16.0.10
+network 255.255.255.0
+
+# The private network interface
+auto eth2
+iface eth2 inet static
+address 192.168.4.10
+network 255.255.255.0
+```
+
+
+安装openstack包
+--------------
+```
+0) 安装过程中推荐使用root
+
+1) 安装ubuntu-cloud-keyring
+apt-get install ubuntu-cloud-keyring
+
+2) 添加kilo源
+echo "deb http://ubuntu-cloud.archive.canonical.com/ubuntu" \
+  "trusty-updates/kilo main" > /etc/apt/sources.list.d/cloudarchive-kilo.list
+
+3) 更新及源升级
+apt-get update && apt-get dist-upgrade
 
 
 ### 一、Ubuntu14.04远程连接（ssh安装）
 
-    ssh是一种安全协议，主要用于给远程登录会话数据进行加密，保证数据传输的安全，现在介绍一下如何在Ubuntu 14.04上安装和配置ssh
+    ssh是一种安全协议，主要用于给远程登录会话数据进行加密，保证数据传输的安全.
 
-    更新源列表
-    打开"终端窗口"，输入"sudo apt-get update"-->回车-->"输入当前登录用户的管理员密码"-->回车,就可以了
+    1) 更新源列表
+    apt-get update
 
-    安装ssh
-    打开"终端窗口"，输入"sudo apt-get install openssh-server"-->回车-->输入"y"-->回车-->安装完成。
+    2) 安装ssh
+    apt-get install openssh-server
 
-    查看ssh服务是否启动
-    打开"终端窗口"，输入"sudo ps -e |grep ssh"-->回车-->有sshd,说明ssh服务已经启动，如果没有启动，输入"sudo service ssh start"-->回车-->ssh服务就会启动
+    3) 查看ssh服务是否启动
+    ps -e |grep ssh
+    如果有sshd,说明ssh服务已经启动，如果没有启动，则输入
+    service ssh start
+    服务就会启动
 
-    使用vim修改配置文件"/etc/ssh/sshd_config"
-    打开"终端窗口"，输入"sudo vim /etc/ssh/sshd_config"-->回车-->把配置文件中的"PermitRootLogin without-password"加一个"#"号,把它注释掉-->再增加一句"PermitRootLogin yes"-->保存，修改成功。 
-
+    3) 修改配置文件
+    vim /etc/ssh/sshd_config
     注: ssh默认端口号是22，可以修改（但不建议）。
     PermitRootLogin without-password 把这一句注释掉，不然有设置密码的root用户就无法登陆。
     PermitRootLogin yes 增加这一句，允许root用户登陆。
@@ -33,7 +134,7 @@
     1) 一种是同步远程网络服务器
     2) 一种是同步局域网内的服务器。
 
-    这里的三个节点：
+    如果多节点安装：
     1) 控制节点（controller）同步的是远程网络服务器
     2) 计算节点和网络节点则是同步的控制节点
 
@@ -43,18 +144,24 @@
     控制节点同步其它服务器，可以有多个。其它节点同步控制节点。
 
     1) 安装NTP
-
-        # apt-get install ntp
+        apt-get install ntp
 
     2) 修改配置文件
 
-        修改 /etc/ntp.conf，其中NTP_SERVER为controller
+        修改 /etc/ntp.conf，添加如下配置:
         server NTP_SERVER iburst
         restrict -4 default kod notrap nomodify
         restrict -6 default kod notrap nomodify
 
+        其中NTP_SERVER需要修改,
+
         如果控制节点为controller，直接使用下面即可
         server controller iburst
+        restrict -4 default kod notrap nomodify
+        restrict -6 default kod notrap nomodify
+
+        我的配置为:
+        server openstack iburst
         restrict -4 default kod notrap nomodify
         restrict -6 default kod notrap nomodify
 
@@ -63,8 +170,12 @@
         如果 /var/lib/ntp/ntp.conf文件存在，则移动
 
     3) 重启NTP
+        service ntp restart
 
-        # service ntp restart
+    4) 验证安装
+        # ntpq -c peers
+
+        # ntpq -c assoc
 
 
 ### 三、mysql（MariaDB）安装【控制节点】
@@ -73,24 +184,16 @@
     1.MariaDB与mysql的关系是什么？
     2.遇到Checking for corrupt, not cleanly closed and upgrade needing tables.该如何解决？
 
-
-    安装mysql之前首先安装OpenStack库
-    # apt-get install ubuntu-cloud-keyring
-    # echo "deb http://ubuntu-cloud.archive.canonical.com/ubuntu" \
-      "trusty-updates/kilo main" > /etc/apt/sources.list.d/cloudarchive-kilo.list
-    # apt-get update && apt-get dist-upgrade
-
-    如果不安装openstack库，直接安装keystone，会keystone能够安装成功，但是keystone启动后，接着就会失败。造成keystone为unknown instance
-
     为什么产生MariaDB
-    首先这里介绍一下，大家对MariaDB可能不太熟悉，MariaDB数据库管理系统是MySQL的一个分支，主要由开源社区在维护，采用GPL授权许可。开发这个分支的原因之一是：甲骨文公司收购了MySQL后，有将MySQL闭源的潜在风险，因此社区采用分支的方式来避开这个风险。
-
+    首先这里介绍一下，大家对MariaDB可能不太熟悉，MariaDB数据库管理系统是MySQL的一个分支,
+    主要由开源社区在维护，采用GPL授权许可。开发这个分支的原因之一是：甲骨文公司收购了MySQL后,
+    有将MySQL闭源的潜在风险，因此社区采用分支的方式来避开这个风险。
 
     安装
-    # apt-get install mariadb-server python-mysqldb
+    apt-get install mariadb-server python-mysqldb -y
 
     创建文件/etc/mysql/conf.d/mysqld_openstack.cnf完成下面内容：
-    a. 在 [mysqld]部分，设置 bind-address 为控制节点管理网络ip地址，使能通过管理网络访问其它节点,并设置其他内容:
+    a. 在[mysqld]部分,设置bind-address为控制节点管理网络ip地址,使能通过管理网络访问其它节点,并设置其他内容:
 
     # vim /etc/mysql/conf.d/mysqld_openstack.cnf
     [mysqld]
@@ -102,7 +205,7 @@
     character-set-server = utf8
 
     重启mysql
-    # service mysql restart
+    service mysql restart
 
     输出如下信息
     * Stopping MariaDB database server mysqld                                                                                                    [ OK ]
@@ -119,17 +222,12 @@
 
 ### 四、RabbitMQ 安装【控制节点】 
 
-    问题导读
-    1.如何安装RabbitMQ？
-    2.如何创建openstack用户？
-    3.如何禁止访问openstack用户？
-
     1.安装消息队列服务
     # apt-get install rabbitmq-server
 
     2.配置消息队列服务
     a) 添加 openstak 用户
-    # rabbitmqctl add_user openstack 5564155
+    # rabbitmqctl add_user openstack 123456
 
     b) 禁止访问读写openstack user
     # rabbitmqctl set_permissions openstack ".*" ".*" ".*"
@@ -151,15 +249,13 @@
 
     对keystone授权
 
-        MariaDB [(none)]>
-        MariaDB [(none)]> grant all privileges on keystone.* to 'keystone'@'localhost' identified by '5564155';
+        MariaDB [(none)]> grant all privileges on keystone.* to 'keystone'@'localhost' identified by '123456';
         Query OK, 0 rows affected (0.00 sec)
 
-        MariaDB [(none)]>
-        MariaDB [(none)]> grant all privileges on keystone.* to 'keystone'@'%' identified by '5564155';
+        MariaDB [(none)]> grant all privileges on keystone.* to 'keystone'@'%' identified by '123456';
         Query OK, 0 rows affected (0.00 sec)
 
-        注：上面的含义实现了，对keystone用户实现了，本地和远程都可以访问
+        注: 上面的含义实现了，对keystone用户实现了，本地和远程都可以访问
 
         退出mysql
         MariaDB [(none)]> quit
@@ -168,30 +264,25 @@
 
         1) 默认keystone服务监听端口5000 和 35357，尽管如此向导配置 Apache HTTP server 监听这些端口，
            为了避免端口冲突，安装后禁止开机启动keystone 服务。
-
             # echo "manual" > /etc/init/keystone.override
 
-
         2) 下载并安装keystone
-
             # apt-get install keystone \
                               python-openstackclient \
                               apache2 \
                               libapache2-mod-wsgi \
                               memcached \
-                              python-memcache
+                              python-memcache -y
 
 
         3) 编辑/etc/keystone/keystone.conf
-
             [DEFAULT]
             admin_token = 570f150cb897e793e58f
             
             verbose = True
-            debug = True
 
             [database]
-            connection = mysql://keystone:5564155@localhost/keystone
+            connection = mysql://keystone:123456@localhost/keystone
 
             注,记得一定注释掉：
             connection=sqlite:////var/lib/keystone/keystone.db
@@ -206,9 +297,7 @@
             修改 [revoke] 部分, 配置  SQL revocation driver:
             driver = keystone.contrib.revoke.backends.sql.Revoke
 
-    填充keystone
-
-    注：最好切到root执行,否则会同步不成功
+    填充keystone 注：最好切到root执行,否则会同步不成功
     # /bin/sh -c "keystone-manage db_sync" keystone
 
     配置 Apache HTTP server
@@ -250,58 +339,48 @@
         </VirtualHost>
 
     3. 启用身份服务虚拟主机：
-
         # ln -s /etc/apache2/sites-available/wsgi-keystone.conf /etc/apache2/sites-enabled
 
     4. 创建WSGI组件的目录结构：
         # mkdir -p /var/www/cgi-bin/keystone
 
     5. 下载复制WSGI组件到目录 /var/www/cgi-bin/keystone
-
         # curl http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo \
           | tee /var/www/cgi-bin/keystone/main /var/www/cgi-bin/keystone/admin
 
     6. 修改权限
-
         # chown -R keystone:keystone /var/www/cgi-bin/keystone
         # chmod 755 /var/www/cgi-bin/keystone/*
 
     完成安装
-
     1. 重启 Apache HTTP server:
-
         # service apache2 restart
 
     2. 如果存在 SQLite 数据库，则删除
-
         # rm -f /var/lib/keystone/keystone.db
 
 
 ### 六：创建服务实例和 API endpoint
 
     问题导读
-
     1.这里配置的OS_TOKEN的作用是什么？
     2.如何创建服务实例和API endpoint？
 
     1、准备
 
         1）配置token
-
-            root@king:~# export OS_TOKEN=570f150cb897e793e58f
+            # export OS_TOKEN=570f150cb897e793e58f
             格式：export OS_TOKEN=ADMIN_TOKEN
-            注：ADMIN_TOKEN为keystone的配置文件里的admin_token的设置值
+            注: ADMIN_TOKEN为keystone的配置文件里的admin_token的设置值
 
         2）配置endpoint url
-
-            root@king:~# export OS_URL=http://localhost:35357/v2.0
+            # export OS_URL=http://localhost:35357/v2.0
 
     2、创建服务实例和API endpoint
 
         1）创建Identity实例服务
-
-            root@king:~# openstack service create \
-            --name keystone --description "OpenStack Identity" identity
+            # openstack service create \
+              --name keystone --description "OpenStack Identity" identity
             +-------------+----------------------------------+
             | Field       | Value                            |
             +-------------+----------------------------------+
@@ -311,16 +390,15 @@
             | name        | keystone                         |
             | type        | identity                         |
             +-------------+----------------------------------+
-            root@king:~#
 
         2）创建实例服务
 
-            root@king:~# openstack endpoint create \
-            --publicurl http://localhost:5000/v2.0 \
-            --internalurl http://localhost:5000/v2.0 \
-            --adminurl http://localhost:35357/v2.0 \
-            --region RegionOne \
-            identity
+            # openstack endpoint create \
+              --publicurl http://localhost:5000/v2.0 \
+              --internalurl http://localhost:5000/v2.0 \
+              --adminurl http://localhost:35357/v2.0 \
+              --region RegionOne \
+              identity
             +--------------+----------------------------------+
             | Field        | Value                            |
             +--------------+----------------------------------+
@@ -333,13 +411,11 @@
             | service_name | keystone                         |
             | service_type | identity                         |
             +--------------+----------------------------------+
-            root@king:~#
 
 
 ### 七、创建租户、用户、角色
 
     问题导读
-
     1.思考创建管理员租户前提是什么？管理员租户是否可以直接创建？
     2.通过操作思考租户、用户、角色三者之间的关系？
     3.如何实现添加角色到租户、用户？
@@ -347,8 +423,7 @@
     1、创建管理员租户、用户、角色
 
         1) 创建admin租户
-
-        root@king:~# openstack project create --description "admin project" admin
+        # openstack project create --description "admin project" admin
         +-------------+----------------------------------+
         | Field       | Value                            |
         +-------------+----------------------------------+
@@ -357,12 +432,9 @@
         | id          | aa3622f4a6ee4c379f4294b4492562b0 |
         | name        | admin                            |
         +-------------+----------------------------------+
-        root@king:~#
-
 
         2) 创建admin用户
-
-        root@king:~# openstack user create --password-prompt admin
+        # openstack user create --password-prompt admin
         User Password:
         Repeat User Password:
         +----------+----------------------------------+
@@ -374,36 +446,27 @@
         | name     | admin                            |
         | username | admin                            |
         +----------+----------------------------------+
-        root@king:~#
-
 
         3) 创建admin角色
-
-        root@king:~# openstack role create admin
+        # openstack role create admin
         +-------+----------------------------------+
         | Field | Value                            |
         +-------+----------------------------------+
         | id    | d574ffdf0ef748138fb3ec2460d47d9e |
         | name  | admin                            |
         +-------+----------------------------------+
-        root@king:~#
-
 
         4) 添加 admin 角色到 admin 租户和用户
-
-        root@king:~# openstack role add --project admin --user admin admin
+        # openstack role add --project admin --user admin admin
         +-------+----------------------------------+
         | Field | Value                            |
         +-------+----------------------------------+
         | id    | d574ffdf0ef748138fb3ec2460d47d9e |
         | name  | admin                            |
         +-------+----------------------------------+
-        root@king:~#
-
 
     2、创建一个service租户
-
-        root@king:~# openstack project create --description "service project" service
+        # openstack project create --description "service project" service
         +-------------+----------------------------------+
         | Field       | Value                            |
         +-------------+----------------------------------+
@@ -412,13 +475,11 @@
         | id          | 255de1bf31434000a4824ef4aec84f36 |
         | name        | service                          |
         +-------------+----------------------------------+
-        root@king:~#
 
     3、创建非管理员demo租户
 
         1) 创建demo租户
-
-        root@king:~# openstack project create --description "demo project" demo
+        # openstack project create --description "demo project" demo
         +-------------+----------------------------------+
         | Field       | Value                            |
         +-------------+----------------------------------+
@@ -427,12 +488,9 @@
         | id          | b8f1c26e2b3c447e8ba664fc999c6e70 |
         | name        | demo                             |
         +-------------+----------------------------------+
-        root@king:~#
-
 
         2) 创建demo用户
-
-        root@king:~# openstack user create --password-prompt demo
+        # openstack user create --password-prompt demo
         User Password:
         Repeat User Password:
         +----------+----------------------------------+
@@ -444,43 +502,34 @@
         | name     | demo                             |
         | username | demo                             |
         +----------+----------------------------------+
-        root@king:~#
-
 
         3) 创建user角色
-
-        root@king:~# openstack role create user
+        # openstack role create user
         +-------+----------------------------------+
         | Field | Value                            |
         +-------+----------------------------------+
         | id    | 8b355da0962d4da692d05a60cec737a1 |
         | name  | user                             |
         +-------+----------------------------------+
-        root@king:~#
-
 
         4) 添加 user 角色到 demo 租户和用户
-
-        root@king:~# openstack role add --project demo --user demo user
+        # openstack role add --project demo --user demo user
         +-------+----------------------------------+
         | Field | Value                            |
         +-------+----------------------------------+
         | id    | 8b355da0962d4da692d05a60cec737a1 |
         | name  | user                             |
         +-------+----------------------------------+
-        root@king:~#
 
 
 ###八、验证keystone安装部署
 
     问题导读
-
     1.如何去掉环境变量？
     2.去掉环境变量如何发送请求？
     3.demo用户是否可以查看用户列表？
 
     1、为了安全，禁用临时token
-
     编辑 /etc/keystone/keystone-paste.ini 文件，移除admin_token_auth从
     [pipeline:public_api], [pipeline:admin_api], 和[pipeline:api_v3]部分.
 
@@ -492,15 +541,13 @@
     pipeline = sizelimit url_normalize request_id build_auth_context token_auth json_body ......
 
     2、去掉环境变量OS_TOKEN、OS_URL
-
     # unset OS_TOKEN OS_URL
 
     3、作为管理员，请求身份验证令牌API版本2
-
-    root@king:~# openstack --os-auth-url http://localhost:35357 \
-    --os-project-name admin --os-username admin --os-auth-type password \
-    token issue
-    Password:
+    # openstack --os-auth-url http://localhost:35357 \
+      --os-project-name admin --os-username admin --os-auth-type password \
+      token issue
+      Password:
     +------------+----------------------------------+
     | Field      | Value                            |
     +------------+----------------------------------+
@@ -509,15 +556,13 @@
     | project_id | aa3622f4a6ee4c379f4294b4492562b0 |
     | user_id    | 22488b4d6ec3414aac16de978337909d |
     +------------+----------------------------------+
-    root@king:~#
 
     4、Identity 版本 3 API添加支持域
-
-    root@king:~# openstack --os-auth-url http://localhost:35357 \
-    --os-project-domain-id default --os-user-domain-id default \
-    --os-project-name admin --os-username admin --os-auth-type password \
-    token issue
-    Password:
+    # openstack --os-auth-url http://localhost:35357 \
+      --os-project-domain-id default --os-user-domain-id default \
+      --os-project-name admin --os-username admin --os-auth-type password \
+      token issue
+      Password:
     +------------+----------------------------------+
     | Field      | Value                            |
     +------------+----------------------------------+
@@ -526,15 +571,13 @@
     | project_id | aa3622f4a6ee4c379f4294b4492562b0 |
     | user_id    | 22488b4d6ec3414aac16de978337909d |
     +------------+----------------------------------+
-    root@king:~#
-    注意密码：是admin用户的密码
+    注意密码: 是admin用户的密码
 
     5、作为admin用户，列出用户作为admin核实admin可以执行admin-only CLI命令
-
-    root@king:~# openstack --os-auth-url http://localhost:35357 \
-    --os-project-name admin --os-username admin --os-auth-type password \
-    project list
-    Password:
+    # openstack --os-auth-url http://localhost:35357 \
+      --os-project-name admin --os-username admin --os-auth-type password \
+      project list
+      Password:
     +----------------------------------+---------+
     | ID                               | Name    |
     +----------------------------------+---------+
@@ -542,43 +585,37 @@
     | aa3622f4a6ee4c379f4294b4492562b0 | admin   |
     | b8f1c26e2b3c447e8ba664fc999c6e70 | demo    |
     +----------------------------------+---------+
-    root@king:~#
 
     6、作为admin用户，列出用户核实认证服务
-
-    root@king:~# openstack --os-auth-url http://localhost:35357 \
-    --os-project-name admin --os-username admin --os-auth-type password \
-    user list
-    Password:
+    # openstack --os-auth-url http://localhost:35357 \
+      --os-project-name admin --os-username admin --os-auth-type password \
+      user list
+      Password:
     +----------------------------------+-------+
     | ID                               | Name  |
     +----------------------------------+-------+
     | 22488b4d6ec3414aac16de978337909d | admin |
     | de83ed698d0744e29c75fed800498670 | demo  |
     +----------------------------------+-------+
-    root@king:~#
 
     7、作为 admin 用户, 列出角色验证keystone服务
-
-    root@king:~# openstack --os-auth-url http://localhost:35357 \
-    --os-project-name admin --os-username admin --os-auth-type password \
-    role list
-    Password:
+    # openstack --os-auth-url http://localhost:35357 \
+      --os-project-name admin --os-username admin --os-auth-type password \
+      role list
+      Password:
     +----------------------------------+-------+
     | ID                               | Name  |
     +----------------------------------+-------+
     | 8b355da0962d4da692d05a60cec737a1 | user  |
     | d574ffdf0ef748138fb3ec2460d47d9e | admin |
     +----------------------------------+-------+
-    root@king:~#
 
     8、作为demo用户，请求token 认证从3版本的API
-
-    root@king:~# openstack --os-auth-url http://localhost:5000 \
-    --os-project-domain-id default --os-user-domain-id default \
-    --os-project-name demo --os-username demo --os-auth-type password \
-    token issue
-    Password:
+    # openstack --os-auth-url http://localhost:5000 \
+      --os-project-domain-id default --os-user-domain-id default \
+      --os-project-name demo --os-username demo --os-auth-type password \
+      token issue
+      Password:
     +------------+----------------------------------+
     | Field      | Value                            |
     +------------+----------------------------------+
@@ -587,12 +624,10 @@
     | project_id | b8f1c26e2b3c447e8ba664fc999c6e70 |
     | user_id    | de83ed698d0744e29c75fed800498670 |
     +------------+----------------------------------+
-    root@king:~#
     注释：这里输入demo密码
 
     9、作为 demo 用户, 尝试列出用户不能执行 admin-only CLI 命令
-
-    root@king:~# openstack --os-auth-url http://localhost:5000 \
+    # openstack --os-auth-url http://localhost:5000 \
     --os-project-domain-id default --os-user-domain-id default \
     --os-project-name demo --os-username demo --os-auth-type password \
     user list
@@ -604,47 +639,40 @@
 ###九、创建openstack客户端环境变量脚本
 
     问题导读
-
     1.juno版本与Kilo版本脚本有什么区别？
     2.如何加载不同租户？
     3.如何获取token？
 
     1、创建脚本
-
     创建admin 和 demo 租户脚本
 
         a) 编辑admin-openrc.sh 文件，添加如下内容
-
         export OS_PROJECT_DOMAIN_ID=default
         export OS_USER_DOMAIN_ID=default
         export OS_PROJECT_NAME=admin
         export OS_TENANT_NAME=admin
         export OS_USERNAME=admin
-        export OS_PASSWORD=5564155
+        export OS_PASSWORD=123456
         export OS_AUTH_URL=http://localhost:35357/v3
         export OS_REGION_NAME=RegionOne
 
-
         b) 编辑文件demo-openrc.sh ，添加如下内容
-
         export OS_PROJECT_DOMAIN_ID=default
         export OS_USER_DOMAIN_ID=default
         export OS_PROJECT_NAME=demo
         export OS_TENANT_NAME=demo
         export OS_USERNAME=demo
-        export OS_PASSWORD=5564155
+        export OS_PASSWORD=123456
         export OS_AUTH_URL=http://localhost:5000/v3
         export OS_REGION_NAME=RegionOne
 
     2、加载客户端环境脚本
 
         1) 加载admin-openrc.sh环境变量
-
             # source admin-openrc.sh
 
         2) 请求认证令牌
-
-            root@king:~# openstack token issue
+            # openstack token issue
             +------------+----------------------------------+
             | Field      | Value                            |
             +------------+----------------------------------+
@@ -653,13 +681,11 @@
             | project_id | aa3622f4a6ee4c379f4294b4492562b0 |
             | user_id    | 22488b4d6ec3414aac16de978337909d |
             +------------+----------------------------------+
-            root@king:~#
 
 
 ###十、glance安装配置【控制节点】
 
     问题导读
-
     1.keystone认证部分，glance密码该如何设置？
     2.配置 [keystone_authtoken] 和 [paste_deploy]有哪些需要注意的问题？
     3.如何配置glance数据库连接？
@@ -669,11 +695,9 @@
     1、 创建database,完成下面步骤:
 
         a) 使用root用户登录
-
-            root@king:~# mysql -uroot -p
+            # mysql -uroot -p
 
         b) 创建glance 数据库
-
             MariaDB [(none)]> CREATE DATABASE glance;
             Query OK, 1 row affected (0.10 sec)
 
@@ -688,32 +712,26 @@
             | performance_schema |
             +--------------------+
             5 rows in set (0.06 sec)
-
             MariaDB [(none)]>
 
         c) 授权
-            MariaDB [(none)]>
-            MariaDB [(none)]> GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' identified by '5564155';
+            MariaDB [(none)]> GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' identified by '123456';
             Query OK, 0 rows affected (1.38 sec)
 
-            MariaDB [(none)]> grant all privileges on glance.* to 'glance'@'%' identified by '5564155';
+            MariaDB [(none)]> grant all privileges on glance.* to 'glance'@'%' identified by '123456';
             Query OK, 0 rows affected (0.00 sec)
-            MariaDB [(none)]>
 
         d) 退出数据库
-
             MariaDB [(none)]> Ctrl-C -- exit!
             Aborted
 
     2、生效admin环境变量
-
         # source admin-openrc.sh
 
     3、创建认证服务
 
         a) 创建glance用户
-
-            root@king:~# openstack user create --password-prompt glance
+            # openstack user create --password-prompt glance
             User Password:
             Repeat User Password:
             +----------+----------------------------------+
@@ -725,22 +743,18 @@
             | name     | glance                           |
             | username | glance                           |
             +----------+----------------------------------+
-            root@king:~#
 
         b) 添加admin角色到glance用户和service租户
-
-            root@king:~# openstack role add --project service --user glance admin
+            # openstack role add --project service --user glance admin
             +-------+----------------------------------+
             | Field | Value                            |
             +-------+----------------------------------+
             | id    | d574ffdf0ef748138fb3ec2460d47d9e |
             | name  | admin                            |
             +-------+----------------------------------+
-            root@king:~#
 
         c) 创建glance服务实例
-
-            root@king:~# openstack service create --name glance \
+            # openstack service create --name glance \
             --description "OpenStack Image Server" image
             +-------------+----------------------------------+
             | Field       | Value                            |
@@ -751,11 +765,11 @@
             | name        | glance                           |
             | type        | image                            |
             +-------------+----------------------------------+
-            root@king:~#
+
 
     4、创建镜像服务API endpoint
 
-        root@king:~# openstack endpoint create \
+        # openstack endpoint create \
         --publicurl http://localhost:9292 \
         --internalurl http://localhost:9292 \
         --adminurl http://localhost:9292 \
@@ -773,25 +787,22 @@
         | service_name | glance                           |
         | service_type | image                            |
         +--------------+----------------------------------+
-        root@king:~#
+
 
     安装配置glance服务组件
 
     1、安装glance
-
         # apt-get install glance python-glanceclient -y
 
     2、编辑文件 /etc/glance/glance-api.conf，完成下面内容
 
         a) 在[database]部分，配置数据库访问
-
             [database]
-            connection = mysql://glance:5564155@localhost/glance
+            connection = mysql://glance:123456@localhost/glance
 
         b) 在[keystone_authtoken]和[paste_deploy]部分, 配置Identity服务访问
 
             [keystone_authtoken]
-            ...
             auth_uri = http://localhost:5000
             auth_url = http://localhost:35357
             auth_plugin = password
@@ -799,46 +810,38 @@
             user_domain_id = default
             project_name = service
             username = glance
-            password = 5564155
+            password = 123456
+            注: 注释掉其它[keystone_authtoken]部分
 
             [paste_deploy]
-            ...
             flavor = keystone
-
-            注: 注释掉其它[keystone_authtoken]部分
 
         c) 在[glance_store]部分, 配置本地文件系统存储和image文件路径
 
             [glance_store]
-            ...
             default_store = file
             filesystem_store_datadir = /var/lib/glance/images/
 
         d) 在[DEFAULT]部分，配置noop禁用通知驱动，因为它只属于可选的遥测服务
 
             [DEFAULT]
-            ...
             notification_driver = noop
 
         5) 在[DEFAULT]部分启用日志详细信息记录
 
             [DEFAULT]
-            ...
             verbose = True
-            debug = True
 
     3、编辑 /etc/glance/glance-registry.conf 文件，完成下面内容
 
         a) 在[database]部分，配置数据库访问
 
             [database]
-            ...
-            connection = mysql://glance:5564155@localhost/glance
+            connection = mysql://glance:123456@localhost/glance
 
         b) 在[keystone_authtoken]和[paste_deploy]部分, 配置 Identity service 访问
 
             [keystone_authtoken]
-            ...
             auth_uri = http://localhost:5000
             auth_url = http://localhost:35357
             auth_plugin = password
@@ -846,77 +849,63 @@
             user_domain_id = default
             project_name = service
             username = glance
-            password = 5564155
+            password = 123456
+            注: 注释掉其它[keystone_authtoken]部分
 
             [paste_deploy]
-            ...
             flavor = keystone
-
-            注: 注释掉其它[keystone_authtoken]部分
 
         c) 在[DEFAULT]部分, 配置noopdriver禁用通知因为他们只属于遥测服务
 
             [DEFAULT]
-            ...
             notification_driver = noop
 
         d) 方便排除，启用日志信息详细记录
 
             [DEFAULT]
-            ...
             verbose = True
-            debug = True
 
     4、同步数据库
-
         # su -s /bin/sh -c "glance-manage db_sync" glance
 
     5、完成安装
 
         1) 重启镜像服务
-
             # service glance-registry restart
             # service glance-api restart
 
         2） 如果存在SQLite 数据库则删除
-
             # rm -f /var/lib/glance/glance.sqlite
 
     遇到问题
-
         ERROR: openstack No tenant with a name or ID of 'service' exists.
         原因没有创建service 租户
 
         Solution: 创建Service租户即可
         # openstack project create --description "Service Project" service
 
+
 ###十一、glance安装验证
 
     问题导读
-
     1.如何下载镜像？
     2.如何上传镜像？
     3.如何验证镜像是否上次成功？
 
     1. 在每一个客户端脚本,配置镜像服务客户端使用 API version 2.0:
-
         # echo "export OS_IMAGE_API_VERSION=2" | tee -a admin-openrc.sh demo-openrc.sh
 
     2. 生效admin环境变量
-
         # source admin-openrc.sh
 
     3. 创建一个临时目录
-
         # mkdir /tmp/images
 
     4. 下载镜像到当前目录
-
         # wget -P /tmp/images http://download.cirros-cloud.net/0.3.3/cirros-0.3.3-x86_64-disk.img
 
     5. 上传镜像到glance，镜像使用qcow2 格式，镜像使用格式
-
-        root@oneplus:~/projects/openstack# glance image-create --name "cirros-0.3.3-x86_64" --file /tmp/images/cirros-0.3.3-x86_64-disk.img \
+        # glance image-create --name "cirros-0.3.3-x86_64" --file /tmp/images/cirros-0.3.3-x86_64-disk.img \
         >   --disk-format qcow2 --container-format bare --visibility public --progress
         [=============================>] 100%
         +------------------+--------------------------------------+
@@ -939,17 +928,14 @@
         | virtual_size     | None                                 |
         | visibility       | public                               |
         +------------------+--------------------------------------+
-        root@oneplus:~/projects/openstack#
 
     6. 确认上次成功，核实属性
-
-        root@oneplus:~/projects/openstack# glance image-list
+        # glance image-list
         +--------------------------------------+---------------------+
         | ID                                   | Name                |
         +--------------------------------------+---------------------+
         | 087252c1-838d-4645-977f-6e410ad051c6 | cirros-0.3.3-x86_64 |
         +--------------------------------------+---------------------+
-        root@oneplus:~/projects/openstack# 
 
 
 ### nova
@@ -957,11 +943,9 @@
     1. 创建数据库
 
         a) 使用root用户登录
-
-            root@king:~# mysql -uroot -p
+            # mysql -uroot -p
 
         b) 创建nova数据库
-
             MariaDB [(none)]> CREATE DATABASE nova;
             Query OK, 1 row affected (0.10 sec)
 
@@ -977,31 +961,27 @@
             | performance_schema |
             +--------------------+
             5 rows in set (0.06 sec)
-
             MariaDB [(none)]>
 
         c) 授权
-            MariaDB [(none)]>
-            MariaDB [(none)]> GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' identified by '5564155';
+            MariaDB [(none)]> GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost' identified by '123456';
             Query OK, 0 rows affected (1.38 sec)
 
-            MariaDB [(none)]> grant all privileges on nova.* to 'nova'@'%' identified by '5564155';
+            MariaDB [(none)]> grant all privileges on nova.* to 'nova'@'%' identified by '123456';
             Query OK, 0 rows affected (0.00 sec)
-            MariaDB [(none)]>
 
         d) 退出数据库
-
             MariaDB [(none)]> Ctrl-C -- exit!
             Aborted
 
 
     2. 生效admin用户
-    root@oneplus:~/projects/openstack# source admin-openrc.sh 
+        # source admin-openrc.sh 
 
     3. 创建keystone认证，完成下面内容
 
         a) 创建nova用户
-            root@oneplus:~/projects/openstack# openstack user create --password-prompt nova
+            # openstack user create --password-prompt nova
             User Password:
             Repeat User Password:
             +----------+----------------------------------+
@@ -1015,17 +995,16 @@
             +----------+----------------------------------+
 
         b) 添加admin 角色到nova用户
-            root@oneplus:~/projects/openstack# openstack role add --project service --user nova admin
+            # openstack role add --project service --user nova admin
             +-------+----------------------------------+
             | Field | Value                            |
             +-------+----------------------------------+
             | id    | e5f57dabbeef4447be2aa94fc99fd45b |
             | name  | admin                            |
             +-------+----------------------------------+
-            root@oneplus:~/projects/openstack# 
 
         4) 创建nova 服务实例
-            root@oneplus:~/projects/openstack# openstack service create --name nova \
+            # openstack service create --name nova \
              --description "OpenStack Compute" compute
             +-------------+----------------------------------+
             | Field       | Value                            |
@@ -1038,7 +1017,7 @@
             +-------------+----------------------------------+
 
         5) 创建nova 服务 API endpoint
-            root@oneplus:~/projects/openstack# openstack endpoint create \
+            # openstack endpoint create \
             --publicurl http://localhost:8774/v2/%\(tenant_id\)s \
             --internalurl http://localhost:8774/v2/%\(tenant_id\)s \
             --adminurl http://localhost:8774/v2/%\(tenant_id\)s \
@@ -1066,7 +1045,7 @@
             b) 修改配置/etc/nova/nova.conf文件，完成下面内容
 
                 [database]
-                connection = mysql://nova:5564155@localhost/nova
+                connection = mysql://nova:123456@localhost/nova
 
             c) 在[DEFAULT] 和 [oslo_messaging_rabbit] 部分，配置RabbitMQ 消息队列访问
 
@@ -1076,7 +1055,7 @@
                 [oslo_messaging_rabbit]
                 rabbit_host = localhost
                 rabbit_userid = openstack
-                rabbit_password = 5564155
+                rabbit_password = 123456
 
             d) 在[DEFAULT] 和 [keystone_authtoken] 部分，Identity service 访问
 
@@ -1091,7 +1070,7 @@
                 user_domain_id = default
                 project_name = service
                 username = nova
-                password = 5564155
+                password = 123456
 
             e) 在[DEFAULT] 部分，使用控制节点管理网络ip地址配置my_ip
 
@@ -1101,7 +1080,7 @@
             f) 在 [DEFAULT]部分，使用控制节点管理网络ip地址配置 VNC proxy
 
                 [DEFAULT]
-                vncserver_listen = 127.0.0.1
+                vncserver_listen = 10.20.0.10
                 vncserver_proxyclient_address = 127.0.0.1
 
             g) 在 [glance] 部分， 配置镜像服务位置
@@ -1149,7 +1128,7 @@
             [oslo_messaging_rabbit]
             rabbit_host = localhost
             rabbit_userid = openstack
-            rabbit_password = 5564155
+            rabbit_password = 123456
 
         b.在 [DEFAULT] 和 [keystone_authtoken] 部分, 配置 Identity service 访问:
             [DEFAULT]
@@ -1163,7 +1142,7 @@
             user_domain_id = default
             project_name = service
             username = nova
-            password = 5564155
+            password = 123456
 
             注意：在 [keystone_authtoken] 部分，注释掉或移除其它内容.
 
