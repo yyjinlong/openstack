@@ -37,7 +37,7 @@ vboxnet3：
    网卡1的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet1 对应eth0
    网卡2的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet2 对应eth1
    网卡3的连接方式选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet3 对应eth2
-   网卡4的连接方式选择: 网络地址转换(NAT)                               对应eth3
+   网卡4的连接方式选择: 网络地址转换(NAT)   ----   对应eth3
 
 2) 系统配置: 2 cpu 20G disk 2G memory
 
@@ -1124,7 +1124,8 @@ novncproxy_base_url = http://localhost:6080/vnc_auto.html
 ```
 
 
-###验证安装【控制节点】
+验证安装[控制节点]
+------------------
 
 ```sh
 1.生效环境变量
