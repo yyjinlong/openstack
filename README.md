@@ -34,10 +34,10 @@ vboxnet3：
 
 ```
 1) 网卡配置: 高级选项中的控制芯片、混杂模式 均不改.
-   网卡1的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet1
-   网卡2的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet2
-   网卡3的连接方式选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet3
-   网卡4的连接方式选择: 网络地址转换(NAT)
+   网卡1的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet1 对应eth0
+   网卡2的界面名称选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet2 对应eth1
+   网卡3的连接方式选择: (仅主机(Host-Only)适配器), 界面名称选择vboxnet3 对应eth2
+   网卡4的连接方式选择: 网络地址转换(NAT)                               对应eth3
 
 2) 系统配置: 2 cpu 20G disk 2G memory
 
