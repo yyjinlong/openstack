@@ -84,6 +84,23 @@ address 192.168.4.10
 network 255.255.255.0
 ```
 
+locale.Error：unsupported locale setting
+----------------------------------------
+
+```sh
+安装ubuntu server后,安装文件会报上边的locale语言设置错误问题
+    # locale
+    .......
+    LC_ALL=
+    发现值为空,所以我们需要再设置一下语言:
+    本次有效的方式:
+    export LC_ALL=C
+
+    长久有效的方式:
+    编辑/etc/profile文件，添加如下:
+    export LC_ALL=en_US.UTF-8
+```
+
 
 安装openstack包
 --------------
